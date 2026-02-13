@@ -1,3 +1,3 @@
 function minhaFunc(){
-    document.getElementById("demo").innerHTML = "O parágrafo mudou."
+    document.getElementById("demo").innerHTML = "Você mudou o parágrafo."
 }
