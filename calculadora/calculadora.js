@@ -8,7 +8,7 @@ function calculadora(){
         operando1 = parseFloat (prompt("Digite o primeiro número: "));
         operando2 = parseFloat (prompt("Digite o segundo número: "));
         operador = prompt("Digite uma das operações ( + - * /): ");
-
+        
         if ( operador == "+" ){
             resultado = operando1 + operando2;
         } else if ( operador == "-" ){
@@ -23,10 +23,7 @@ function calculadora(){
         } if (operador2 == 0)
             alert("não é possivel dividir por zero")
             return
-        }
-
-        alert("Resultado: " + operando1 + " " + 
-            operador + " " + operando2 + " = " + resultado);
-        }
+        {alert("Resultado: " + operando1 + " " + 
+           operador + " " + operando2 + " = " + resultado);}
     }
-
+}    
