@@ -27,14 +27,19 @@ function calculadora(){
                     return
                 }
             } else {
+                
             resultado = operando1 / operando2;
             }
         } else {
             alert("operador inválido!");
-            return
+                operador_valido = false;
+                continua = prompt("digite sim para continuar e não para encerrar");
+                if(continua === "não"){
+                        return
+                    }
         } 
         
-        if( operador != "/" || operando2 != 0){
+        if( (operador != "/" || operando2 != 0) && operador_valido != false ){
              alert("Resultado: " + operando1 + " " + 
              operador + " " + operando2 + " = " + resultado);
         }
