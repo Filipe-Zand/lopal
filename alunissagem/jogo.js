@@ -7,18 +7,30 @@
 
 let canvas = document.querySelector("#jogo");
 let contexto = canvas.getContext("2d");
+let lancamento = (Math.round(Math.random()) == 0);
+let estrelas = [];
+for (let i = 0; i < 500; i++){
+    estrelas[i] = {
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        raio: Math.sqrt(2 * Math.random()),
+        brilho: 1.0,
+        apagando: true,
+        cintilacao: 0.05 * Math.random()
+    }
+}
 
 let moduloLunar = {
     posicao: {
-        x: 800,
+        x: lancamento ? 100 : 700,
         y: 100
     },
-    angulo: Math.PI/2,
+    angulo: lancamento ? -Math.PI/2 : Math.PI/2,
     largura: 20,
     altura: 20,
     cor: "lightgray",
     velocidade:{
-        x: -2,
+        x: lancamento ? 2 : -2,
         y: 0
     },
     motorLigado: false,
@@ -27,15 +39,43 @@ let moduloLunar = {
     rotacaoHorario: false
 }
 
-function mostrarVelocidadeVertical(){
+function mostrarAngulo(){
+    mostrarIndicador(
+        `Angulo: ${(moduloLunar.angulo * 180 / Math.PI).toFixed(0)}`,
+        600,
+        40
+    );
+}
+function mostrarIndicador(mensagem, x, y){
     contexto.font = "hold 18px Arial";
     contexto.textAlign = "left";
     contexto.textBaseLine = "middle";
     contexto.fillStyle = "lightgreen";
     contexto.fillText(
+        mensagem,
+        x,
+        y
+    )
+}
+
+function mostrarAltitude(){
+    mostrarIndicador(
+         `Altitude: ${(canvas.height - moduloLunar.posicao.y 
+            - 0.5 * moduloLunar.altura).toFixed(0)}M`,
+        600,
+        60
+    )
+}
+
+function mostrarVelocidadeVertical(){
+    contexto.font = "hold 18px Arial";
+    contexto.textAlign = "left";
+    contexto.textBaseline = "middle";
+    contexto.fillStyle = "lightgreen";
+    contexto.fillText(
         `Velocidade Vertical: ${(10 * moduloLunar.velocidade.y).toFixed(2)}`,
         50,
-        60
+        40
     );
 }
 function mostrarVelocidadeHorizontal(){
@@ -46,7 +86,7 @@ function mostrarVelocidadeHorizontal(){
     contexto.fillText(
         `Velocidade Horizontal: ${(10 * moduloLunar.velocidade.x).toFixed(2)}`,
         50,
-        40
+        60
     );
 }
 function mostrarCombustivel(){
@@ -61,11 +101,39 @@ function mostrarCombustivel(){
     );
 }
 
-function desenharFundo(){
+/*function desenharFundo(){
     contexto.clearRect(0, 0, canvas.width, canvas.height);
     contexto.save();
     contexto.fillStyle = "#000";
     contexto.fillRect(0, 0, canvas.width, canvas.height);
+    contexto.restore();
+}*/
+
+function desenharEstrelas(){
+    contexto.clearRect(0, 0, canvas.width, canvas.height);
+    contexto.save();
+    contexto.fillStyle = "#000";
+    contexto.fillRect(0,0, canvas.width, canvas.height);
+    for (let i = 0; i < estrelas.length; i++){
+        let estrela = estrelas[i];
+        contexto.beginPath();
+        contexto.arc(estrela.x, estrela.y, estrela.raio, 0, 2 * Math.PI);
+        contexto.closePath();
+        contexto.fillStyle = `rgba(255, 255, 255, ${estrela.brilho})`;
+        contexto.fill();
+        if(estrela.apagando){
+            estrela.brilho -= estrela.cintilacao;
+            if(estrela.brilho <= 0.1 ){
+                estrela.apagando = false;
+            }
+        } else {
+            estrela.brilho += estrela.cintilacao;
+            if(estrela.brilho > 0.95){
+                estrela.apagando = true;
+            }
+        }
+
+    }
     contexto.restore();
 }
 
@@ -82,11 +150,7 @@ function desenharModuloLunar(){
 
     if(moduloLunar.motorLigado){
         desenharChama();
-        moduloLunar.combustivel--;
-        if(moduloLunar.combustivel <= 0){
-            moduloLunar.motorLigado = false
-        }
-       
+        consumirCombustivel();
     }
     contexto.restore();
 }
@@ -106,13 +170,19 @@ function desenharChama(){
 function desenhar(){
    
     atracaoGravitacional();
-    desenharFundo();
+    desenharEstrelas();
     desenharModuloLunar();
     mostrarVelocidadeVertical();
     mostrarVelocidadeHorizontal();
     mostrarCombustivel();
+    mostrarAltitude();
+    mostrarAngulo();
 
-    if(moduloLunar.posicao.y > canvas.height - moduloLunar.altura * 0.5){
+    if(encerrarJogo()){
+        return;
+    }
+
+    /*if(moduloLunar.posicao.y > canvas.height - moduloLunar.altura * 0.5){
         if(moduloLunar.velocidade.y <= 0.5 &&
             moduloLunar.velocidade.x <= 0.5 &&
             moduloLunar.angulo <= 5){
@@ -121,8 +191,22 @@ function desenhar(){
             mostrarResultado("Você impactou o solo", cor = "red")
         }
         return
-    }
+    }*/
     requestAnimationFrame(desenhar);
+}
+
+function encerrarJogo(){
+    if(moduloLunar.posicao.y > canvas.height - moduloLunar.altura * 0.5){
+        if(moduloLunar.velocidade.y <= 0.5 &&
+        Math.abs(moduloLunar.velocidade.x) <= 0.5 &&
+        Math.abs(moduloLunar.angulo) <= 5){
+            mostrarResultado("Você ganhou", cor = "green");
+        } else {
+            mostrarResultado("Você perdeu", cor = "red")
+        }
+        return true;
+    }
+    return false;
 }
 
 function mostrarResultado(mensagem, cor){
@@ -157,6 +241,13 @@ function teclaSolta(evento){
     }
 }
 
+function consumirCombustivel(){
+    moduloLunar.combustivel--;
+        if(moduloLunar.combustivel <= 0){
+            moduloLunar.motorLigado = false
+        }
+}
+
 const gravidade = 0.01;
 function atracaoGravitacional(){
 
@@ -175,5 +266,4 @@ function atracaoGravitacional(){
         moduloLunar.velocidade.x += 0.0121 * Math.sin(moduloLunar.angulo);
     }
 }
-
 desenhar();
